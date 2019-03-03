@@ -13,9 +13,11 @@ typedef struct menu_tag
 }menu;
 typedef struct restaurant_tag
 {  char name[50];
-   char adderess[100];
+   char address[100];
+   char zone[50];
    int no_of_seats;
    menu res_menu;
+   int category; // 1 if restaurant 2 if cafe 3 if pub
    struct restaurant_tag *next_res;
 }restaurant;
 typedef struct agent_tag
@@ -41,4 +43,78 @@ typedef order_tag
   char ag_phone[11];
   struct order_tag *next_order;
 }orders;
-
+void search_res_category(restaurant* res}
+{ 
+  int y,flag;
+  printf("ENTER THE CATEGORY YOU WANT:(1)Restaurant (2)Cafe (3)Pub \n");
+  scanf("%d",&y);
+  if(y>=1 && y<=3)
+  { flag=0;
+    restaurant* nptr=res;
+    while(nptr!=NULL)
+    {
+      { if(nptr->category==y)
+        { if(flag==0)
+           { printf("The eating locations are:\n");
+             printf("%s\n",nptr->name); 
+             flag=1;        
+           }
+          else
+           {  printf("%s\n",nptr->name);   
+           }
+        }
+       
+       }
+       nptr=nptr->next_res;
+    }
+    if(flag==0)
+      { printf("NO Locations available\n");
+      }
+  }
+  else
+   { printf("Enter proper choice\n");
+   }
+}
+void search_res_cuisine(restaurant* res)
+{ int flag=0;
+  char x[100],y[50];
+  printf("Enter area: ");
+  scanf("%s",x);
+  printf("Enter zone: ");
+  scanf("%s",y);
+  restaurant* nptr=res;
+  while(nptr!=NULL)
+   { if(strcmp(nptr->address,x)==0)
+      { if(flag==0)
+         { printf("Restaurant in area:\n");
+           printf("%s\n",nptr->address);
+           flag=1;
+         }
+        else
+         {
+            printf("%s\n",nptr->address);
+         }
+      }
+     nptr=nptr->next_res;
+   }
+  if(flag==0)
+   printf("No restaurant found in area\n");
+  flag=0;
+  restaurant* nptr=res;
+  while(nptr!=NULL)
+   { if(strcmp(nptr->zone,y)==0)
+      { if(flag==0)
+         { printf("Restaurant in nearby area:\n");
+           printf("%s\n",nptr->address);
+           flag=1;
+         }
+        else
+         {
+            printf("%s\n",nptr->address);
+         }
+      }
+     nptr=nptr->next_res;
+   }
+   if(flag==0)
+   printf("No restaurant found in nearby areas\n");
+} 
