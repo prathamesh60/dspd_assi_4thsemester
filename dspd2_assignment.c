@@ -518,7 +518,7 @@ statuscode takeorder(location *all_eatspots,orders **pending_order,cuis_location
   }
   return sc;
 }
-statuscode delivery(orders **pending_orders,agent **agent_list,agent **agent_busy_list)
+statuscode delivery(orders **pending_orders,agent **agent_list,agent **agent_busy_list,orders **archived_orders)
 { orders *nptr=*pending_orders,*kptr;
   orders *prev=NULL;
   statuscode sc=SUCCESS;
@@ -565,7 +565,9 @@ statuscode delivery(orders **pending_orders,agent **agent_list,agent **agent_bus
 		  }
 	  }
 	p->curr_accu_commi=(p->curr_accu_commi)+((1.0*kptr->total_price)/10);
-	free(kptr);
+	//free(kptr);
+	kptr->next=*archived_orders;
+	*archived_orders=kptr;
    	if(temp==1)
    	{
 	   
@@ -648,6 +650,45 @@ statuscode cancel_order(orders **pending_orders,agent **agent_list,agent **agent
    }
    return sc;
 }
+void print_user_history(orders **archived_orders)
+{  char phone[11];
+   int i;
+   printf("Enter phone no of user: ");
+   scanf("%s",phone);
+   orders *nptr;
+   int temp=0;
+   while(nptr!=NULL)
+    {  
+       if(strcmp(nptr->username->phone_no,phone)==0)
+         {  if(temp==0)
+             {
+               printf("Following are past orders with given user:\n ");
+               temp=1;
+			 }
+		    printf("Order Id\t:%d\n",nptr->ord_id);
+			printf("Restaurant Name\t:%s\n",nptr->res_name);
+			printf("Restaurant Address\t:%s\n",nptr->res_address);
+			printf("No. of items\t:%d\n",nptr->no_of_items);
+			for(i=0;i<nptr->no_of_items;i++)
+			{
+				printf("%d. %s\n",i+1,nptr->ordered_restaurant->res_menu->item[nptr->item_index[i]].itemname);
+				printf(" Price\t:%f\n",nptr->ordered_restaurant->res_menu->item[nptr->item_index[i]].price);
+			} 
+			printf("Username\t:%s",nptr->username->name);
+			printf("User Address\t:%s",nptr->username->address);
+			printf("User Phone No.\t:%s",nptr->username->phone_no);
+			printf("Total price to be paid\t:%f",nptr->total_price);
+			printf("Agent Name\t:%s",nptr->allocated_agent->name);
+			printf("Agent Phone No.\t:%s",nptr->allocated_agent->phone_no);
+         	
+		 }
+		nptr=nptr->next;
+	}
+   if(temp==0)
+    printf("No orders associated with given user: ");
+    
+    
+}
 int main()
 {   statuscode sc;
 	cat_location *res=NULL;
@@ -658,7 +699,7 @@ int main()
 	cuis_location *cont=NULL;
 	location *all_eatspots=NULL;
 	location *fptr;
-	orders *pending_orders=NULL;
+	orders *pending_orders=NULL,*archived_orders=NULL;
 	user *users=NULL;
 	agent *agent_list=NULL,*agent_busy_list=NULL;
 	sc=insert_agent(&agent_list,111,"RAMU","912345678",0.0);
@@ -749,6 +790,8 @@ int main()
     	printf("Press <7> to get the details of available agents:\n");
     	printf("Press <8> to complete delivery of a order:\n");
     	printf("Press <9> to get the details of busy agents:\n");
+    	printf("Press <10> to get details of archived orders:\n ");
+    	printf("Press <11> to get order history of a particular user:\n");
     	scanf("%d",&query);
     	switch(query)
 		{
@@ -759,8 +802,10 @@ int main()
         	case 5:takeorder(all_eatspots,&pending_orders,north,south,cont,&users,&agent_list,&agent_busy_list);break;
         	case 6:print_live_orders(pending_orders);break;
         	case 7:print_agents(agent_list);break;
-        	case 8:sc=delivery(&pending_orders,&agent_list,&agent_busy_list);
+        	case 8:sc=delivery(&pending_orders,&agent_list,&agent_busy_list,&archived_orders);
         	case 9:print_agents(agent_busy_list);break;
+        	case 10:print_live_orders(archived_orders);break;
+        	case 11:print_user_history(&archived_orders);break;
 			default:printf("Please enter appropriate choice");
         			break;
     	}
