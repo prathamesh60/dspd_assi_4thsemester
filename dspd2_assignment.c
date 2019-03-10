@@ -38,6 +38,7 @@ typedef struct cuisine_tag{
 	char address[50];
 	struct cuisine_tag* next;
 }cuis_location;
+int agent_id_allocator=114;
 typedef struct agent_tag
 { int  id;
   char name[50];
@@ -744,6 +745,74 @@ void print_user_history(orders **archived_orders)
     
     
 }
+statuscode insert_eating_location(location **all_eatspots, char res_zone[50],char res_name[50],char res_address[50],int res_no_of_seats,int res_category,int res_cuis_category, menu *res_res_menu,cat_location **res,cat_location **cafe,cat_location **pub,cuis_location **north,cuis_location **south,cuis_location **cont)
+{
+   statuscode sc;
+ //strcpy(res_name,"PRATHAMESH");
+    printf("Enter the name of your restaurant\t:\n");
+    scanf("%s",res_name);
+    printf("Enter the address of your restaurant\t:\n");
+    //strcpy(res_address,"NAGPUR");
+    scanf("%s",res_address);
+    printf("Enter the zone of your restaurant\t:\n");
+    //strcpy(res_zone,"EAST");
+    scanf("%s",res_zone);
+   // res_no_of_seats=100;
+    printf("Enter the number of seats in your restaurant\t:\n");
+	scanf("%d",&res_no_of_seats);
+    res_res_menu=create_menu();
+    printf("Enter the category of your restaurant\t:\n");
+    printf("PRESS 1 FOR RESTAURANT\nPRESS 2 FOR CAFE\nPRESS 3 FOR PUB\n");
+    scanf("%d",&res_category);
+    printf("Enter the cuisine of your restaurant\t:\n");
+    printf("PRESS 1 FOR NORTH INDIAN\nPRESS 2 FOR SOUTH INDIAN\nPRESS 3 FOR CONTINENTAL\n");
+    scanf("%d",&res_cuis_category);
+	//res_category=1;
+    //res_cuis_category=2;
+ 
+    //fptr=all_eatspots;
+    sc=insert_eat_location(all_eatspots,res_name,res_address,res_zone,res_no_of_seats,res_res_menu,res_category,res_cuis_category);
+	if(res_category==1)
+	{
+		insert_cat_location(res,res_name,res_address);
+	}
+	else if(res_category==2)
+	{
+		insert_cat_location(cafe,res_name,res_address);
+	}
+	else
+	{
+		insert_cat_location(pub,res_name,res_address);
+	}
+	if(res_cuis_category==1)
+	{
+		insert_cuis_location(north,res_name,res_address);
+	}
+	else if(res_cuis_category==2)
+	{
+		insert_cuis_location(south,res_name,res_address);
+	}
+	else
+	{
+		insert_cuis_location(cont,res_name,res_address);
+	}
+   return sc;
+}
+statuscode insert_new_agent(agent **agent_list)
+{   statuscode sc;
+	char ag_name[50];
+	char ag_phone_no[11];
+    char ag_area[50];
+    printf("Enter agent namer: ");
+    scanf("%s",ag_name);\
+    printf("Enter agent phone no: ");
+    scanf("%s",ag_phone_no);
+    printf("Enter agent area: ");
+    scanf("%s",ag_area);
+    sc=insert_agent(agent_list,agent_id_allocator,ag_name,ag_phone_no,ag_area,0.0);
+    agent_id_allocator++;
+    return sc;
+}
 int main()
 {   statuscode sc;
 	cat_location *res=NULL;
@@ -769,7 +838,7 @@ int main()
     int res_category; 
     int res_cuis_category;
     int i;
-   	for(i=0;i<3;i++)
+   	for(i=0;i<1;i++)
    	{
     //strcpy(res_name,"PRATHAMESH");
     printf("Enter the name of your restaurant\t:\n");
@@ -849,6 +918,8 @@ int main()
     	printf("Press <11> to cancel a particular order:\n");
     	printf("Press <12> to get details of archived orders:\n");
     	printf("Press <13> to get order history of a particular user:\n");
+    	printf("Press <14> to insert new restaurant:\n");
+    	printf("Press <15> to insert new agent:\n");
     	scanf("%d",&query);
     	switch(query)
 		{
@@ -866,6 +937,8 @@ int main()
         	case 11:sc=cancel_order(&pending_orders,&agent_list,&agent_busy_list);break;
             case 12:print_live_orders(archived_orders);break;
             case 13:print_user_history(&archived_orders);break;
+            case 14:sc=insert_eating_location(&all_eatspots,res_zone,res_name,res_address,res_no_of_seats,res_category,res_cuis_category,res_res_menu,&res,&cafe,&pub,&north,&south,&cont);break;
+            case 15:sc=insert_new_agent(&agent_list);break;
 			default:printf("Please enter appropriate choice");
         			break;
     	}
