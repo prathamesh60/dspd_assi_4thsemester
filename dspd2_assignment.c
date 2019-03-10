@@ -42,6 +42,7 @@ typedef struct agent_tag
 { int  id;
   char name[50];
   char phone_no[11];
+  char area[50];
   boolean is_available;
   char ord_id[21];
   float curr_accu_commi;
@@ -190,6 +191,25 @@ void print_location(location *nptr)
 	menu *lptr=nptr->res_menu;
 	visit_menu(lptr);
 }
+void get_details(location *all_eatspots)
+{
+	char name[50],address[100],flag=1;
+	location *nptr=all_eatspots;
+	printf("Enter the name of your restaurant\t:");
+	scanf("%s",name);
+	printf("Enter the address of your restaurant\t:");
+	scanf("%s",address);
+	while(nptr!=NULL&&flag==1)
+	{
+		if(strcmp(nptr->name,name)==0&&strcmp(nptr->address,address)==0)
+		{
+			print_location(nptr);
+			flag=0;
+		}
+		else
+		nptr=nptr->next;
+	}
+}
 void Traverse(location *all_eatspots)
 {
 	location *nptr=all_eatspots;
@@ -303,7 +323,7 @@ void search_area(location* lptr)
    	if(flag==0)
    	printf("No restaurant found in nearby areas\n");
 } 
-statuscode insert_agent(agent **ag_ptr,int id,char name[50],char phone_no[11],float curr_accu_comm)
+statuscode insert_agent(agent **ag_ptr,int id,char name[50],char phone_no[11],char area[50],float curr_accu_comm)
 {	
 	statuscode sc=FAILURE;
 	agent *nptr=(agent*)malloc(sizeof(agent));
@@ -311,6 +331,7 @@ statuscode insert_agent(agent **ag_ptr,int id,char name[50],char phone_no[11],fl
 	  {  nptr->id=id;
 	     strcpy(nptr->name,name);
 	     strcpy(nptr->phone_no,phone_no);
+	     strcpy(nptr->area,area);
 	     nptr->curr_accu_commi=curr_accu_comm;
 	     nptr->is_available=TRUE;
 		 nptr->next=*ag_ptr;
@@ -326,16 +347,17 @@ void print_agents(agent *ag_ptr)
 			printf("Agent Id\t:%d\n",nptr->id);
 			printf("Agent Name\t:%s\n",nptr->name);
 			printf("Agent Phone No.\t:%s\n",nptr->phone_no);
+			printf("Agent Area\t:%s\n",nptr->area);
 			printf("Accumulated Commission\t:%f\n",nptr->curr_accu_commi);
-			if(nptr->is_available==TRUE)
+			/*if(nptr->is_available==TRUE)
 			{
-				printf("Availability\t:Available\n");
+				printf("Availability\t:Available\n\n");
 			}
 			else
 			{
 				printf("Availability\t:Not Available\n");
-				printf("Busy with Order ID\t:%s\n",nptr->ord_id);
-			}
+				printf("Busy with Order ID\t:%s\n\n",nptr->ord_id);
+			}*/
 			nptr=nptr->next;
 	}
 }
@@ -351,20 +373,21 @@ void print_live_orders(orders *optr)
 			for(i=0;i<nptr->no_of_items;i++)
 			{
 				printf("%d. %s\n",i+1,nptr->ordered_restaurant->res_menu->item[nptr->item_index[i]].itemname);
-				printf(" Price\t:%f\n",nptr->ordered_restaurant->res_menu->item[nptr->item_index[i]].price);
+				printf("  Quantity\t:%d\n",nptr->quantity_index[i]);
+				printf("  Price\t:%f\n",nptr->ordered_restaurant->res_menu->item[nptr->item_index[i]].price);
 			} 
-			printf("Username\t:%s",nptr->username->name);
-			printf("User Address\t:%s",nptr->username->address);
-			printf("User Phone No.\t:%s",nptr->username->phone_no);
-			printf("Total price to be paid\t:%f",nptr->total_price);
-			printf("Agent Name\t:%s",nptr->allocated_agent->name);
-			printf("Agent Phone No.\t:%s",nptr->allocated_agent->phone_no);
+			printf("Username\t:%s\n",nptr->username->name);
+			printf("User Address\t:%s\n",nptr->username->address);
+			printf("User Phone No.\t:%s\n",nptr->username->phone_no);
+			printf("Total price to be paid\t:%f\n",nptr->total_price);
+			printf("Agent Name\t:%s\n",nptr->allocated_agent->name);
+			printf("Agent Phone No.\t:%s\n",nptr->allocated_agent->phone_no);
 	  nptr=nptr->next;   
      
   }
 }
 statuscode takeorder(location *all_eatspots,orders **pending_order,cuis_location *north,cuis_location *south,cuis_location *cont,user **users,agent **agent_list,agent **agent_busy_list)
-{ Traverse(all_eatspots);
+{ 
   int temp=1;
   int food_type;
   char name[100],address[100];
@@ -518,7 +541,7 @@ statuscode takeorder(location *all_eatspots,orders **pending_order,cuis_location
   }
   return sc;
 }
-statuscode delivery(orders **pending_orders,agent **agent_list,agent **agent_busy_list)
+statuscode delivery(orders **pending_orders,agent **agent_list,agent **agent_busy_list,orders **archived_orders)
 { orders *nptr=*pending_orders,*kptr;
   orders *prev=NULL;
   statuscode sc=SUCCESS;
@@ -565,7 +588,9 @@ statuscode delivery(orders **pending_orders,agent **agent_list,agent **agent_bus
 		  }
 	  }
 	p->curr_accu_commi=(p->curr_accu_commi)+((1.0*kptr->total_price)/10);
-	free(kptr);
+	//free(kptr);
+	kptr->next=*archived_orders;
+	*archived_orders=kptr;
    	if(temp==1)
    	{
 	   
@@ -648,6 +673,77 @@ statuscode cancel_order(orders **pending_orders,agent **agent_list,agent **agent
    }
    return sc;
 }
+void areawise_agents(agent *ag_ptr,agent *bg_ptr)
+{
+	char area[50];
+	printf("Enter the area you want to look for agents\t:");
+	scanf("%s",area);
+	agent *nptr=ag_ptr;
+	while(nptr!=NULL)
+	{
+		if(strcmp(nptr->area,area)==0)
+		{
+			printf("Agent Id\t:%d\n",nptr->id);
+			printf("Agent Name\t:%s\n",nptr->name);
+			printf("Agent Phone No.\t:%s\n",nptr->phone_no);
+			printf("Agent Area\t:%s\n",nptr->area);
+			printf("Accumulated Commission\t:%f\n",nptr->curr_accu_commi);
+		}
+			nptr=nptr->next;
+	}
+	agent *kptr=bg_ptr;
+	while(kptr!=NULL)
+	{
+		if(strcmp(kptr->area,area)==0)
+		{
+			printf("Agent Id\t:%d\n",kptr->id);
+			printf("Agent Name\t:%s\n",kptr->name);
+			printf("Agent Phone No.\t:%s\n",kptr->phone_no);
+			printf("Agent Area\t:%s\n",kptr->area);
+			printf("Accumulated Commission\t:%f\n",kptr->curr_accu_commi);
+		}
+			kptr=kptr->next;
+	}
+}
+void print_user_history(orders **archived_orders)
+{  char phone[11];
+   int i;
+   printf("Enter phone no of user: ");
+   scanf("%s",phone);
+   orders *nptr;
+   int temp=0;
+   while(nptr!=NULL)
+    {  
+       if(strcmp(nptr->username->phone_no,phone)==0)
+         {  if(temp==0)
+             {
+               printf("Following are past orders with given user:\n ");
+               temp=1;
+			 }
+		    printf("Order Id\t:%d\n",nptr->ord_id);
+			printf("Restaurant Name\t:%s\n",nptr->res_name);
+			printf("Restaurant Address\t:%s\n",nptr->res_address);
+			printf("No. of items\t:%d\n",nptr->no_of_items);
+			for(i=0;i<nptr->no_of_items;i++)
+			{
+				printf("%d. %s\n",i+1,nptr->ordered_restaurant->res_menu->item[nptr->item_index[i]].itemname);
+				printf(" Price\t:%f\n",nptr->ordered_restaurant->res_menu->item[nptr->item_index[i]].price);
+			} 
+			printf("Username\t:%s",nptr->username->name);
+			printf("User Address\t:%s",nptr->username->address);
+			printf("User Phone No.\t:%s",nptr->username->phone_no);
+			printf("Total price to be paid\t:%f",nptr->total_price);
+			printf("Agent Name\t:%s",nptr->allocated_agent->name);
+			printf("Agent Phone No.\t:%s",nptr->allocated_agent->phone_no);
+         	
+		 }
+		nptr=nptr->next;
+	}
+   if(temp==0)
+    printf("No orders associated with given user: ");
+    
+    
+}
 int main()
 {   statuscode sc;
 	cat_location *res=NULL;
@@ -658,12 +754,12 @@ int main()
 	cuis_location *cont=NULL;
 	location *all_eatspots=NULL;
 	location *fptr;
-	orders *pending_orders=NULL;
+	orders *pending_orders=NULL,*archived_orders=NULL;
 	user *users=NULL;
 	agent *agent_list=NULL,*agent_busy_list=NULL;
-	sc=insert_agent(&agent_list,111,"RAMU","912345678",0.0);
-	sc=insert_agent(&agent_list,112,"SHAMU","912345678",0.0);
-	sc=insert_agent(&agent_list,113,"GOLU","9423123458",0.0);
+	sc=insert_agent(&agent_list,111,"RAMU","912345678","NAGPUR",0.0);
+	sc=insert_agent(&agent_list,112,"SHAMU","912345678","AJNI",0.0);
+	sc=insert_agent(&agent_list,113,"GOLU","9423123458","NAGPUR",0.0);
 	
 	char res_name[50];
     char res_address[100];
@@ -673,7 +769,7 @@ int main()
     int res_category; 
     int res_cuis_category;
     int i;
-   	for(i=0;i<1;i++)
+   	for(i=0;i<3;i++)
    	{
     //strcpy(res_name,"PRATHAMESH");
     printf("Enter the name of your restaurant\t:\n");
@@ -743,12 +839,16 @@ int main()
     	printf("Press <1> to search a restaurant by category\t:\n");
     	printf("Press <2> to search a restaurant by cuisine\t:\n");
     	printf("Press <3> search a restaurant by area\t:\n");
-    	printf("Press <4> to insert a eat location\t:\n");
+    	printf("Press <4> to get all details of a eating spot\t:\n");
     	printf("Press <5> to take order from a eating pot\t:\n");
     	printf("Press <6> to get the list of all live orders\t:\n");
     	printf("Press <7> to get the details of available agents:\n");
     	printf("Press <8> to complete delivery of a order:\n");
     	printf("Press <9> to get the details of busy agents:\n");
+    	printf("Press <10> to search areawise agents\t:\n");
+    	printf("Press <11> to cancel a particular order:\n");
+    	printf("Press <12> to get details of archived orders:\n");
+    	printf("Press <13> to get order history of a particular user:\n");
     	scanf("%d",&query);
     	switch(query)
 		{
@@ -756,11 +856,16 @@ int main()
         	case 1:search_category(res,cafe,pub);break;
         	case 2:search_cuisine(north,south,cont);break;
         	case 3:search_area(all_eatspots);break;
+        	case 4:get_details(all_eatspots);break;
         	case 5:takeorder(all_eatspots,&pending_orders,north,south,cont,&users,&agent_list,&agent_busy_list);break;
         	case 6:print_live_orders(pending_orders);break;
         	case 7:print_agents(agent_list);break;
-        	case 8:sc=delivery(&pending_orders,&agent_list,&agent_busy_list);
+        	case 8:sc=delivery(&pending_orders,&agent_list,&agent_busy_list,&archived_orders);break;
         	case 9:print_agents(agent_busy_list);break;
+        	case 10:areawise_agents(agent_busy_list,agent_list);break;
+        	case 11:sc=cancel_order(&pending_orders,&agent_list,&agent_busy_list);break;
+            case 12:print_live_orders(archived_orders);break;
+            case 13:print_user_history(&archived_orders);break;
 			default:printf("Please enter appropriate choice");
         			break;
     	}
